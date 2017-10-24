@@ -291,4 +291,128 @@
 
 @property (atomic, readonly, nullable) NSString *localHost;
 @property (atomic, readonly) uint16_t localPort;
+
+
+/**
+ *  Returns the local or remote address to which this socket is connected,
+ *  specified as a sockaddr structure wrapped in a NSData oject.
+ *  @seealso connectedHost
+ *  @seealso connectedPort
+ *  @seealso localHost
+ *  @seealso localPort
+ */
+@property (atomic, readonly, nullable) NSData *connectedAddress;
+@property (atomic, readonly, nullable) NSData *localAddress;
+
+/**
+ *  Returns whether the socket is IPv4 or IPv6.
+ *  An accepting socket may be both.
+ */
+@property (atomic, readonly) BOOL isIPv4;
+@property (atomic, readonly) BOOL isIPv6;
+
+/**
+ *  Returns whether or not the socket has been secured via TSL/SSL.
+ *
+ *  套接字是否经过TSL／SSL加密。
+ *
+ *  See also the startTLS method.
+ */
+@property (atomic, readonly) BOOL isSecure;
+
+#pragma mark - Reading
+
+/**
+ *  The readData and writeData methods won't block (they are asynchronously).
+ *
+ *  When a read is complete the socket:didReadData:withTag: delegate method is dispatched on the delegateQueue.
+ *  When a write is complete the socket:didWriteData:withTag: delegate method is dispatched on the delegateQueue.
+ *
+ *  You may optionally set a timeout for any read/write operation. (To not timeout, use a negative time interval.)
+ *  If a read/write operation time out, the corresponding "socket:shouldTimeout.." delegate method 
+ *  is called to optionally allow you to extend the timeout.
+ *  Upon a timeout, the "socket:didDisconnectedWtihError:" method is called
+ *
+ *  The tag is for your convenience.
+ *  You can use it as an array index, step number, state id, pointer, etc.
+ *
+ *  readData和writeData方法都不会阻塞，它们都是异步的。
+ *  当一个读操作完成后就会通过代理队列回调socket:didReadData:withTag:代理方法。
+ *  当一个写操作完成后就会通过代理队列回调socket:didWriteData:withTag:代理方法。
+ *  你可以为读写操作设置超时时间。（不使用超时，可以指定一个负数）
+ *  如果一个读写操作超时了，对应的 "socket:shouldTimeout.."代理方法会被调用，这时你有机会延长超时时间。
+ *  Tag可以作为数组的index、步骤的编号、状态码、指针等等。
+ *
+ */
+
+/**
+ *  Read the first available bytes that become available on the socket.
+ *
+ *  If the timeou value is negative, the read operation will not use a timeout.
+ *
+ *  读取socket上的一个有效字节。
+ *  如果timeout为负时，read操作不包含超时。
+ */
+- (void)readDataWithTimeout:(NSTimeInterval)timeout tag:(long)tag;
+
+/**
+ *  Read the first available bytes that become available on the socket.
+ *  The bytes will be appended to the given byte buffer starting at the given offset.
+ *
+ *  If the timeout value is negative, the read operation will not use a timeout.
+ *  If the buffer if nil, the socket will create a buffer for you.
+ *  
+ *  If the bufferOffset is greater than the length of the given buffer,
+ *  the method will do noting, and the delegate will not be called.
+ *  
+ *  If you pass a buffer, you must not alter it in any way while the socket is using it.
+ *  After completion, the data return in socket:didReadData:withTag: will be a subset of the given buffer.
+ *  That is, it will reference the btyes that were appended to the given buffer via the method [NSData dataWithBytesNoCopy:length:freeWhenDone:NO];
+ *
+ *  读取有效字节。
+ *  添加到给出buffer的偏移量的后面。
+ *  如果传入的buffer为空，则socket会创建一个buffer。
+ *  如果offset超出了buffur的长度，则这个方法什么也不执行，代理方法也不会被调用。
+ *  在socket使用期间，你不可以修改buffer。
+ *  每一个操作完成后，会通过socket:didReadData:withTag:返回对应的数据。这些数据就是通过[NSData dataWithBytesNoCopy:length:freeWhenDone:NO]方法追加到buffer上的。
+ *
+ */
+- (void)readDataWithTimeout:(NSTimeInterval)timeout
+                     buffer:(nullable NSMutableData *)buffer
+               bufferOffset:(NSUInteger)bufferOffset
+                        tag:(long)tag;
+
+/**
+ *  The given buffer will automatically be increased in size if need.
+ *  A maximum of length bytes will be read.
+ *  If maxLength is zero, no length restriction is enforced.
+ *
+ *  传入的buffer会自动扩容，最大值是maxLength。如果maxLength = 0 ，则表示没有限制。
+ */
+- (void)readDataWithtimeout:(NSTimeInterval)timeout
+                     buffer:(nullable NSMutableData *)buffer
+               bufferOffset:(NSUInteger)bufferOffset
+                  maxLength:(NSUInteger)maxLength
+                        tag:(long)tag;
+
+/**
+ *  Read the given number of bytes.
+ *  If the length is 0, this method does nothing and the delegate is not called.
+ *
+ *  读取制定长度的字节
+ *  如果length参数为0，则这个方法什么也不做，代理也不会被调用。
+ *
+ */
+- (void)readDataToLength:(NSUInteger)length withTimeout:(NSTimeInterval)timeout tag:(long)tag;
+
+/**
+ * @see readDataWithTimeout:(NSTimeInterval)timeout buffer:(nullable NSMutableData *)buffer bufferOffset:(NSUInteger)bufferOffset tag:(long)tag
+ */
+- (void)readToLength:(NSUInteger)length
+         withTimeout:(NSTimeInterval)timeout
+              buffer:(nullable NSMutableData *)buffer
+        bufferOffset:(NSUInteger)bufferOffset
+                 tag:(long)tag;
+
+
 @end
