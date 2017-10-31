@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
+NS_ASSUME_NONNULL_BEGIN
 
 @interface GCDAsyncSocket : NSObject
 
@@ -415,4 +416,86 @@
                  tag:(long)tag;
 
 
+/**
+ *  Read bytes until (and including) the pass "data" parameter, which acts as a separator.
+ *     
+ *  If you pass nil or Zero-length data as the "data" parameter,
+ *  the method will do nothing (expect maybe print a warning), and the delegate will not be called.
+ */
+- (void)readToData:(NSData *)data withTimeout:(NSTimeInterval)timeout tag:(long)tag;
+
+/**
+ *  Reads bytes until (and including) the passed "data" parameter, which acts as a separator.
+ */
+- (void)readDataToData:(NSData *)data
+           withTimeout:(NSTimeInterval)timeout
+                buffer:(nullable NSMutableData *)buffer
+          bufferOffset:(NSUInteger)offset
+                   tag:(long)tag;
+
+/**
+ * TODO: -
+ **/
+
+- (void)readDataToData:(NSData *)data withTimeout:(NSTimeInterval)timeout maxLength:(NSUInteger)length tag:(long)tag;
+
+- (void)readDataToData:(NSData *)data
+           withTimeout:(NSTimeInterval)timeout
+                buffer:(nullable NSMutableData *)buffer
+          bufferOffset:(NSUInteger)offset
+             maxLength:(NSUInteger)length
+                   tag:(long)tag;
+
+- (float)progressOfReadReturningTag:(nullable long *)tagPtr bytesDone:(nullable NSUInteger *)donePtr total:(nullable NSUInteger *)totalPtr;
+
+#pragma mark - Writing
+
+- (void)writeData:(NSData *)data withTimeout:(NSTimeInterval)timeout tag:(long)tag;
+
+/**
+ * Returns progress of the current write, from 0.0 to 1.0, or NaN if no current write (use isnan() to check).
+ * The parameters "tag", "done" and "total" will be filled in if they aren't NULL.
+ **/
+- (float)progressOfWriteReturningTag:(nullable long *)tagPtr bytesDone:(nullable NSUInteger *)donePtr total:(nullable NSUInteger *)totalPtr;
+
+#pragma mark - Security
+
+
+/**
+ *  Secures the connection using SSL/TLS.
+ *
+ *  This method may be called at any time, and the TLS handshake will occur after all pending reads and writes
+ *  are finished. This allows one the option of sending a protocol dependent StartTLS message, and queuing 
+ *  the upgrade to TLS at the same time, without having to wait for the write to finish.
+ *  Any reads or writes scheduled after this method is called will occur over the secured connection.
+ *
+ *  ==== The available TOP-LEVEL KEYS are:
+ *
+ * - GCDAsyncSocketManuallyEvaluateTrust
+ *      The value must be of type NSNumber, encupsulating a BOOL Value.
+ *
+ *  使用SSL／TLS协议保护连接。
+ *  该方法可以在任何时候调用，但TLS握手操作是在所有未完成的读写操作结束后执行。在发送StartTLS消息的同时就排队升级到TLS，不需要等待
+ *  StartTLS消息写入结束。该方法调用后，所有的读写操作都是安全的。
+ */
+- (void)startTLS:(nullable NSDictionary<NSString *, NSObject *> *)tlsSettings;
+
+#pragma mark - Advanced
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @end
+
+NS_ASSUME_NONNULL_END
